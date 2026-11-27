@@ -1,0 +1,12 @@
+﻿node_modules/
+dist/
+shots/
+refs/
+refs2/
+assets_raw/
+.wrangler/
+poses.json
+*.log
+.DS_Store
+.env
+.env.*

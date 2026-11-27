@@ -1,0 +1,14 @@
+﻿import { chromium } from "playwright";
+const url = "https://[2602:fa59:2:62a2::1]:8443/scarf.html?bones=1";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader"] });
+const ctx = await b.newContext({ ignoreHTTPSErrors: true, viewport: { width: 700, height: 900 } });
+const p = await ctx.newPage();
+const logs = [];
+p.on("console", m => logs.push(`[${m.type()}] ${m.text().slice(0,200)}`));
+p.on("pageerror", e => logs.push("[pageerror] " + String(e).slice(0,200)));
+await p.goto(url, { waitUntil: "load", timeout: 60000 });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 90000 }).catch(()=>{});
+await p.waitForTimeout(2500);
+console.log(logs.slice(0, 12).join("\n"));
+await p.screenshot({ path: "shots/deployed_bones.png" });
+await b.close();

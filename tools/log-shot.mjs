@@ -1,0 +1,11 @@
+﻿import { chromium } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"] });
+const ctx = await b.newContext({ viewport: { width: 760, height: 900 } });
+const p = await ctx.newPage();
+await p.goto("http://localhost:5173/scarf.html", { waitUntil: "load", timeout: 60000 });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 90000 });
+await p.waitForTimeout(1000);
+await p.evaluate(() => document.querySelector("#logPanel > div").dispatchEvent(new MouseEvent("click", { bubbles: true })));
+await p.waitForTimeout(400);
+await p.screenshot({ path: "shots/log_panel2.png" });
+await b.close();

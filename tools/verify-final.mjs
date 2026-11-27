@@ -1,0 +1,11 @@
+﻿import { chromium } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"] });
+const ctx = await b.newContext({ ignoreHTTPSErrors: true, viewport: { width: 620, height: 780 } });
+const p = await ctx.newPage();
+const t0 = Date.now();
+await p.goto("https://[2602:fa59:2:62a2::1]:8443/scarf.html", { waitUntil: "load", timeout: 60000 });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 90000 });
+console.log("ready after", ((Date.now() - t0) / 1000).toFixed(1), "s");
+await p.waitForTimeout(800);
+await p.screenshot({ path: "shots/deploy_final.png" });
+await b.close();

@@ -1,0 +1,20 @@
+﻿import { chromium } from "playwright";
+import fs from "node:fs";
+const b = await chromium.launch({ channel: "chrome" });
+const p = await b.newPage({ viewport: { width: 1280, height: 720 } });
+const b64 = fs.readFileSync("shots/cover_yt_2560x1440.png").toString("base64");
+await p.goto("about:blank");
+const jpg = await p.evaluate(async (b64) => {
+  const img = new Image();
+  img.src = "data:image/png;base64," + b64;
+  await img.decode();
+  const c = document.createElement("canvas");
+  c.width = 1280; c.height = 720;
+  const ctx = c.getContext("2d");
+  ctx.drawImage(img, 0, 0, 1280, 720);
+  return c.toDataURL("image/jpeg", 0.92);
+}, b64);
+await b.close();
+fs.writeFileSync("shots/cover_youtube_1280x720.jpg", Buffer.from(jpg.split(",")[1], "base64"));
+const kb = (fs.statSync("shots/cover_youtube_1280x720.jpg").size / 1024).toFixed(0);
+console.log(`cover_youtube_1280x720.jpg  ${kb} KB  ${Number(kb) < 2048 ? "✓ 小于 2MB" : "✗ 超限"}`);

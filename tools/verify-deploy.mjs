@@ -1,0 +1,15 @@
+﻿import { chromium } from "playwright";
+const url = "https://[2602:fa59:2:62a2::1]:8443/scarf.html";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-certificate-errors"] });
+const ctx = await b.newContext({ ignoreHTTPSErrors: true, viewport: { width: 700, height: 900 } });
+const p = await ctx.newPage();
+const bad = [];
+p.on("response", (r) => { if (r.status() >= 400) bad.push(`${r.status()} ${r.url()}`); });
+p.on("pageerror", (e) => bad.push("JS " + String(e).slice(0, 120)));
+await p.goto(url, { waitUntil: "load", timeout: 60000 });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 90000 });
+await p.waitForTimeout(2500);
+console.log("status:", await p.textContent("#status"));
+console.log("4xx/err:", bad.length ? bad.slice(0, 5) : "none");
+await p.screenshot({ path: "shots/deployed.png" });
+await b.close();

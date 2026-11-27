@@ -1,0 +1,12 @@
+﻿import { chromium } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"] });
+const p = await b.newPage({ viewport: { width: 620, height: 780 } });
+p.on("pageerror", e => console.log("ERR", String(e).slice(0,150)));
+p.on("console", m => { const t = m.text(); if (/POSEDBG|NaN/.test(t)) console.log(t.slice(0,150)); });
+await p.goto("http://localhost:5173/scarf.html?img=/refs/IMG_20261111_005646414.RAW-02.ORIGINAL.jpg&scarf=rock&rpsFast=1", { waitUntil: "load" });
+await p.waitForFunction(() => document.body.dataset.imgReady === "1", { timeout: 60000 });
+await p.waitForTimeout(3000);
+const st = await p.evaluate(() => ({ ph: window.__rps().phase, sc: window.__rps().scarf, shape: window.__rps().shape }));
+console.log(JSON.stringify(st));
+await p.screenshot({ path: "shots/pose_rock.png" });
+await b.close();

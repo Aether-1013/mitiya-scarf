@@ -1,0 +1,11 @@
+﻿import { chromium } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"] });
+const p = await (await b.newContext({ viewport: { width: 820, height: 940 } })).newPage();
+await p.goto("http://localhost:5173/scarf.html?lang=en&game=1", { waitUntil: "load", timeout: 60000 });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 90000 });
+await p.waitForTimeout(1200);
+await p.evaluate(() => document.querySelector("#logPanel > div")?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+await p.waitForTimeout(400);
+await p.screenshot({ path: "shots/site_en.png" });
+await b.close();
+console.log("shot ok");

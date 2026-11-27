@@ -1,0 +1,11 @@
+﻿import { chromium } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"] });
+const p = await (await b.newContext({ viewport: { width: 820, height: 940 } })).newPage();
+await p.goto("https://mitiya.pages.dev/scarf.html?lang=en", { waitUntil: "domcontentloaded", timeout: 60000 });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 90000 });
+await p.waitForTimeout(900);
+await p.evaluate(() => document.querySelector("#logPanel > div")?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+await p.waitForTimeout(300);
+const txt = await p.evaluate(() => [...document.querySelectorAll("#logPanel > div:nth-child(2) > div")].slice(0,6).map(d => d.textContent?.trim()));
+console.log("线上 EN 日志:", txt.join(" | "));
+await b.close();

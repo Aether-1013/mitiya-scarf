@@ -1,0 +1,13 @@
+﻿import { chromium, devices } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"] });
+const ctx = await b.newContext({ ...devices["iPhone 13"] });
+const p = await ctx.newPage();
+await p.goto("https://mitiya.pages.dev/scarf.html", { waitUntil: "domcontentloaded", timeout: 60000 });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 60000 });
+await p.waitForTimeout(1200);
+const header = await p.evaluate(() => document.querySelector("#logPanel > div")?.textContent?.trim());
+console.log("日志栏:", header);
+await p.evaluate(() => document.querySelector("#logPanel > div").dispatchEvent(new MouseEvent("click", { bubbles: true })));
+await p.waitForTimeout(400);
+await p.screenshot({ path: "shots/pages_log_mobile.png" });
+await b.close();

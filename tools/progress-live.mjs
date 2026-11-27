@@ -1,0 +1,14 @@
+﻿import { chromium } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"] });
+const ctx = await b.newContext({ viewport: { width: 760, height: 900 } });
+const p = await ctx.newPage();
+const cdp = await ctx.newCDPSession(p);
+await cdp.send("Network.enable");
+await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 60, downloadThroughput: 600 * 1024, uploadThroughput: 200 * 1024 });
+await p.goto("https://mitiya.pages.dev/scarf.html", { waitUntil: "domcontentloaded", timeout: 90000 });
+await p.waitForTimeout(4500);
+const mid = await p.evaluate(() => ({ msg: document.getElementById("loadmsg")?.textContent, pct: document.getElementById("loadpct")?.textContent }));
+await p.screenshot({ path: "shots/progress_live.png" });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 90000 });
+console.log("中途:", JSON.stringify(mid), "| 最终就绪 ok");
+await b.close();

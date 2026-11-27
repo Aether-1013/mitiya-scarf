@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>米提亚 · 围巾</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <style>
+      #stage3d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      .credit { position: absolute; right: 16px; bottom: 14px; font-size: 11px; color: rgba(182,166,204,0.55); }
+      #bottomFade {
+        position: absolute; left: 0; right: 0; bottom: 0; height: 30%;
+        background: linear-gradient(to top, #05030c 0%, rgba(5,3,12,0.85) 35%, rgba(5,3,12,0) 100%);
+        pointer-events: none;
+      }
+
+      /* 手部动捕预览小窗 */
+      #handPreviewWrap {
+        position: absolute; top: 18px; right: 18px;
+        width: 248px; aspect-ratio: 4 / 3;
+        border-radius: 14px; overflow: hidden;
+        border: 1px solid rgba(168, 123, 255, 0.3);
+        background: #0b0715;
+        box-shadow: 0 10px 34px rgba(0,0,0,0.55);
+        opacity: 0; transform: translateY(-6px) scale(0.97);
+        transition: opacity 0.28s ease, transform 0.28s ease;
+        pointer-events: none;
+      }
+      #handPreviewWrap.on { opacity: 1; transform: none; }
+      #handPreview { display: block; width: 100%; height: 100%; }
+      .hp-head {
+        position: absolute; top: 0; left: 0; right: 0;
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 7px 9px;
+        font-size: 10px; letter-spacing: 0.08em;
+        color: rgba(230, 220, 255, 0.85);
+        background: linear-gradient(to bottom, rgba(8,5,18,0.8), rgba(8,5,18,0));
+      }
+      .hp-head b { color: #a87bff; font-weight: 600; }
+      .hp-foot {
+        position: absolute; left: 0; right: 0; bottom: 0;
+        display: flex; justify-content: space-between;
+        padding: 6px 9px;
+        font-size: 10px; color: rgba(182, 166, 204, 0.9);
+        background: linear-gradient(to top, rgba(8,5,18,0.85), rgba(8,5,18,0));
+        font-variant-numeric: tabular-nums;
+      }
+      .chips {
+        position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%);
+        display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: center;
+        max-width: 96vw; pointer-events: auto;
+      }
+      .chip {
+        font-size: 11px; padding: 4px 9px; border-radius: 999px; opacity: 0.85;
+        background: rgba(16,10,30,0.6); border: 1px solid rgba(168,123,255,0.22);
+        color: #b6a6cc; white-space: nowrap;
+        pointer-events: none;
+      }
+      .chipBtn {
+        width: auto; margin: 0; padding: 6px 11px; font-size: 11px; border-radius: 999px;
+        box-shadow: 0 6px 20px rgba(168,123,255,0.35);
+        pointer-events: auto; cursor: pointer; position: relative; z-index: 2;
+      }
+
+      /* ---- 猜拳 ---- */
+      #rps {
+        position: absolute; inset: 0; pointer-events: none;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+      }
+      #rpsCount {
+        font-size: 132px; font-weight: 800; line-height: 1;
+        color: #e8dcff; text-shadow: 0 0 42px rgba(168,123,255,0.85), 0 6px 24px rgba(0,0,0,0.6);
+        opacity: 0; transform: scale(0.8);
+        transition: opacity 0.18s ease, transform 0.18s ease;
+        font-variant-numeric: tabular-nums;
+      }
+      #rpsCount.show { opacity: 1; transform: scale(1); }
+      #rpsLine {
+        position: absolute; top: 162px; left: 18px; z-index: 30;
+        padding: 10px 22px; border-radius: 14px;
+        background: rgba(10,7,20,0.72); border: 1px solid rgba(168,123,255,0.28);
+        backdrop-filter: blur(10px);
+        font-size: 19px; font-weight: 700; color: #f4ecff;
+        opacity: 0; transition: opacity 0.25s ease;
+        text-align: center; line-height: 1.6; white-space: nowrap;
+      }
+      #rpsLine.show { opacity: 1; }
+      #rpsLine .win { color: #7ef0d0; }
+      #rpsLine .lose { color: #ff8ba0; }
+      #rpsLine .draw { color: #f2d18a; }
+      #rpsScore {
+        position: absolute; top: 122px; left: 18px; z-index: 30;
+        font-size: 15px; letter-spacing: 0.08em; color: #cfc2e6;
+        background: rgba(16,10,30,0.55); border: 1px solid rgba(168,123,255,0.22);
+        padding: 7px 16px; border-radius: 999px; backdrop-filter: blur(10px);
+      }
+      #rpsStart {
+        position: absolute; right: 18px; bottom: 64px;
+        width: auto; margin: 0; padding: 8px 14px; font-size: 12px; border-radius: 999px;
+        pointer-events: auto; z-index: 40;
+      }
+      /* ---- 加载进度条 ---- */
+      .progress {
+        margin: 20px 0 8px;
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(168, 123, 255, 0.16);
+        overflow: hidden;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+      }
+      .progress > i {
+        display: block;
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #7c46dd, #b48bff 60%, #e2c8ff);
+        box-shadow: 0 0 12px rgba(168, 123, 255, 0.7);
+        transition: width 0.18s ease-out;
+      }
+      .progress-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 11px;
+        color: #8f83a8;
+        font-variant-numeric: tabular-nums;
+      }
+      .progress-meta b { color: #cfc2e6; font-weight: 600; }
+      .gate-hint {
+        margin: 18px 0 0;
+        font-size: 12px;
+        line-height: 1.65;
+        color: #8f83a8;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <video id="cam" playsinline muted></video>
+      <canvas id="stage3d"></canvas>
+      <div id="bottomFade"></div>
+
+      <div id="handPreviewWrap">
+        <canvas id="handPreview"></canvas>
+        <div class="hp-head"><b>HAND MOCAP</b><span id="hpName">—</span></div>
+        <div class="hp-foot"><span id="hpCurl">curl 0%</span><span id="hpSpread">spread 0%</span></div>
+      </div>
+
+      <div class="credit">model: HoYoverse</div>
+      <div id="rps">
+        <div id="rpsCount"></div>
+        <div id="rpsLine"></div>
+        <div id="rpsScore">你 0 : 0 围巾</div>
+        <button id="rpsStart">开始猜拳</button>
+      </div>
+
+      <div id="hud">
+        <div class="panel tl">
+          <div class="kicker">SCARF ONLY</div>
+          <h1 data-i18n="title">围巾</h1>
+          <div class="sub" id="status" data-i18n="statusLoading">加载中…</div>
+        </div>
+        <div class="chips">
+          <span class="chip" id="chipHint" data-i18n="chipHintMirror">做手势 → 围巾跟着你动</span>
+          <span class="chip" id="chipMode" data-i18n="chipModeMirror">须子会跟随你的手指方向</span>
+          <button id="modeBtn" class="chipBtn">切到猜拳</button>
+          <button id="langBtn" class="chipBtn">EN</button>
+          <button id="startCam" class="chipBtn">开启摄像头</button>
+        </div>
+      </div>
+      <div id="gate">
+        <div class="gate-card">
+          <div class="gate-kicker">LOADING</div>
+          <h2 data-i18n="gateLoading">切出围巾</h2>
+          <div class="progress"><i id="loadbar"></i></div>
+          <div class="progress-meta">
+            <span id="loadmsg" data-i18n="gatePreparing">准备中…</span>
+            <b id="loadpct">0%</b>
+          </div>
+          <p class="gate-hint" data-i18n="gateHint">首次加载需要下载模型并初始化，大约 30–60 秒（视网速）</p>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/scarfview.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+﻿import { chromium } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader","--use-fake-ui-for-media-stream","--use-fake-device-for-media-stream"] });
+const p = await b.newPage({ viewport: { width: 620, height: 820 }, permissions: ["camera"] });
+const errs = [];
+p.on("pageerror", e => errs.push(String(e)));
+p.on("console", m => { if (m.type() === "error") errs.push(m.text()); });
+await p.goto("http://localhost:5173/scarf.html", { waitUntil: "load" });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 60000 });
+await p.click("#startCam");
+await p.waitForTimeout(9000);
+const st = await p.evaluate(() => ({ status: document.getElementById("status").textContent }));
+console.log(JSON.stringify(st), "errors:", errs.length ? errs.slice(0,3) : "none");
+await p.screenshot({ path: "shots/retarget_test.png" });
+await b.close();

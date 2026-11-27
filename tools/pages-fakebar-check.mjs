@@ -1,0 +1,10 @@
+﻿import { chromium } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader"] });
+const p = await (await b.newContext({ viewport: { width: 760, height: 900 } })).newPage();
+const t0 = Date.now();
+await p.goto("https://mitiya.pages.dev/scarf.html", { waitUntil: "domcontentloaded", timeout: 60000 });
+await p.waitForTimeout(1200);
+const mid = await p.evaluate(() => ({ pct: document.getElementById("loadpct")?.textContent, msg: document.getElementById("loadmsg")?.textContent }));
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 90000 });
+console.log("中途:", JSON.stringify(mid), "| 就绪用时", ((Date.now()-t0)/1000).toFixed(1) + "s");
+await b.close();

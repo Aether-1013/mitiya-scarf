@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>米提亚 · PMX</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <style>
+      #stage3d { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      .credit {
+        position: absolute; right: 16px; bottom: 14px;
+        font-size: 11px; color: rgba(182,166,204,0.55); pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="stage3d"></canvas>
+      <div class="credit">model: HoYoverse</div>
+
+      <div id="hud">
+        <div class="panel tl">
+          <div class="kicker">MITIYA · PMX VIEWER</div>
+          <h1>米提亚</h1>
+          <div class="sub" id="status">加载中…</div>
+        </div>
+      </div>
+
+      <div id="gate">
+        <div class="gate-card">
+          <div class="gate-kicker">LOADING</div>
+          <h2>加载模型</h2>
+          <p id="loadmsg">PMX + 贴图</p>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/model.ts"></script>
+  </body>
+</html>

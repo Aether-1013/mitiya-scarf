@@ -1,0 +1,17 @@
+﻿import { chromium } from "playwright";
+const b = await chromium.launch({ channel: "chrome", args: ["--use-gl=angle","--use-angle=swiftshader","--enable-unsafe-swiftshader","--use-fake-ui-for-media-stream","--use-fake-device-for-media-stream"] });
+const ctx = await b.newContext({ viewport: { width: 760, height: 900 }, permissions: ["camera"] });
+const p = await ctx.newPage();
+const cdp = await ctx.newCDPSession(p);
+await cdp.send("Network.enable");
+await cdp.send("Network.emulateNetworkConditions", { offline: false, latency: 40, downloadThroughput: 2000 * 1024, uploadThroughput: 500 * 1024 });
+await p.goto("http://localhost:5173/scarf.html", { waitUntil: "load", timeout: 60000 });
+await p.waitForFunction(() => document.body.dataset.ready === "1", { timeout: 120000 });
+await p.click("#startCam");
+const t0 = Date.now();
+await p.waitForFunction(() => document.getElementById("gate").classList.contains("hide"), { timeout: 90000 });
+console.log("动捕初始化完成并收起遮罩，用时", ((Date.now()-t0)/1000).toFixed(1) + "s");
+console.log("status:", await p.textContent("#status"));
+await p.waitForTimeout(500);
+await p.screenshot({ path: "shots/cam_ready.png" });
+await b.close();
