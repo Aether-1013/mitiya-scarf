@@ -3,6 +3,17 @@
 网页里有一条从官方 PMX 切出来的围巾（末端分叉成 4 根须子），用摄像头的手部动捕实时驱动。
 所有推理在本地跑，画面不出机器。
 
+## 🎮 在线体验
+
+**https://mitiya.pages.dev/** — 打开就能玩，不用安装
+
+- 需要摄像头（浏览器会请求权限），手机也能用
+- 首次加载要下载约 25 MB 模型，进度条走完即可
+- 想跟它猜拳：点右下角「切到猜拳」
+- 英文界面：右下角 `EN` 按钮，或访问 `?lang=en`
+
+> Live demo: **https://mitiya.pages.dev/** — webcam required, runs entirely in your browser.
+
 ## 跑起来
 
 ```bash
